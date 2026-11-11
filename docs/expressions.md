@@ -41,7 +41,9 @@ Converts UTC to Manila time (fixed UTC+8). `convertFromUtc` was avoided because 
 ### Do until – Wait for signed documents
 
 - Loop until: `varDone` *is equal to* `true`
-- Count: `13` · Timeout: `P29D` (ISO 8601 duration = 29 days)
+- Count: `2` (maximum reminders) · Timeout: `P29D` (ISO 8601 duration = 29 days; a safety net, since Count ends the loop first)
+
+To allow more reminders, raise Count and keep Count × Delay under 30 days (the platform's maximum run length).
 
 ### Find signed or closed (Filter array)
 
@@ -68,6 +70,13 @@ length(body('Find_signed_or_closed'))
 |---|---|
 | `varStopReason` | `first(body('Find_signed_or_closed'))?['subject']` |
 | `varDone` | `true` |
+
+### Reminder number (in the reminder message)
+
+```
+add(iterationIndexes('Wait_for_signed_documents'), 1)
+```
+`iterationIndexes` is 0 for the loop's first round, so adding 1 gives "reminder 1 of 2", "reminder 2 of 2".
 
 ### Days since offer (in the reminder message)
 
