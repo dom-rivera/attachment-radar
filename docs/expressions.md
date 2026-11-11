@@ -23,13 +23,25 @@ and(
     contains(toLower(triggerOutputs()?['body/from']), '@yourcompany.com'),
     contains(toLower(triggerOutputs()?['body/from']), '@yourcompany-alt.com')
   ),
-  not(startsWith(toLower(triggerOutputs()?['body/subject']), 're:')),
-  not(startsWith(toLower(triggerOutputs()?['body/subject']), 'fw')),
+  startsWith(toLower(trim(triggerOutputs()?['body/subject'])), 'your company name'),
+  contains(toLower(triggerOutputs()?['body/subject']), 'offer of employment'),
+  not(contains(variables('varCandidateEmail'), '@yourcompany.com')),
+  not(contains(variables('varCandidateEmail'), '@yourcompany-alt.com')),
   not(contains(toUpper(triggerOutputs()?['body/subject']), '[SIGNED]')),
   not(contains(toUpper(triggerOutputs()?['body/subject']), '[CLOSED]'))
 )
 ```
-True only for a brand-new email from the team: not a reply, a forward (`FW:` / `Fwd:`), or a `[SIGNED]`/`[CLOSED]` email.
+True only for a brand-new offer, i.e. all of:
+
+| Rule | Why |
+|---|---|
+| Sent **from** a company address | Only the team sends offers |
+| Subject **starts with** the company name (the standard offer subject) | Automatically excludes `RE:`, `FW:`, `Automatic reply:`, `Undeliverable:` and similar prefixes |
+| Subject contains "offer of employment" | Confirms it's an offer email |
+| Sent **to** an outside address | A real candidate is never a colleague |
+| No `[SIGNED]` / `[CLOSED]` | Those are manual stop signals |
+
+*Version 1.0 excluded only `RE:` and `FW:` prefixes. A colleague's out-of-office auto-reply ("Automatic reply: …") slipped through and was treated as a new offer, which led to this stricter version (v1.2).*
 
 ### Sent time Manila (Compose)
 

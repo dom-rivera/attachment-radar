@@ -5,7 +5,7 @@ Step-by-step instructions to rebuild both flows in Power Automate's **new design
 ## Prerequisites
 
 1. **Offer email convention**
-   - Subject: `Company - Offer of Employment for [Candidate Full Name]`
+   - Subject: `[Company name] - Offer of Employment for [Candidate Full Name]`. It must **start with** the company name, because Flow A uses that to recognise a new offer
    - **To:** the candidate only · **CC:** the team distro
 2. **Outlook rule** in the flow owner's mailbox: *Recipient address includes [distro]* → *Move to* **Offer of Employment**.
 3. **Teams group chat** with the team. Give it a name and send one message (Power Automate only lists named chats that have messages).
@@ -41,7 +41,7 @@ Rename steps **before** writing expressions that refer to them (spaces become `_
 `varCandidateEmail`, `varOfferSubject`, `varSentBy`, `varSentTime` (String), `varDone` (Boolean, `false`), `varStopReason` (String, empty).
 
 ### 3. Condition `Is new offer`
-Left: the *Is new offer* expression · **is equal to** · Right: fx `true`. Leave **False** empty. Everything below goes in **True**.
+Left: the *Is new offer* expression (see [`expressions.md`](expressions.md): from a team member, to an outside address, subject starts with the company name) · **is equal to** · Right: fx `true`. Leave **False** empty. Everything below goes in **True**.
 
 ### 4. Compose `Sent time Manila`
 Input: `addHours(variables('varSentTime'), 8, 'ddd d MMM yyyy, h:mm tt')`
@@ -132,8 +132,8 @@ Preview: [fx bodyPreview]
 
 ## Team conventions
 
-1. Subject always `Company - Offer of Employment for [Candidate Full Name]`.
+1. Subject always starts with the company name: `[Company name] - Offer of Employment for [Candidate Full Name]`.
 2. **To:** candidate only · **CC:** distro.
-3. Follow-ups and re-sends: reply in the same thread.
+3. Follow-ups, re-sends and replies to the candidate: always **Reply / Reply All** in the same thread. Replies never trigger notifications; a brand-new email with the offer subject would start a new reminder run.
 4. Signed documents that came only to you: forward to the distro with `[SIGNED]` at the start of the subject.
 5. Offer declined or withdrawn: reply in the thread to the distro with `[CLOSED]` at the start of the subject.

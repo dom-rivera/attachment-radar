@@ -64,7 +64,7 @@ flowchart TD
 ### Flow A – Offer extended and reminders
 1. **Trigger:** *When a new email arrives (V3)* on the *Offer of Employment* folder, subject contains "Offer of Employment".
 2. **Variables** capture the candidate (first **To** address), offer subject, sender and sent time.
-3. **Is new offer:** continues only for an email from a company domain that isn't a reply (`RE:`), a forward (`FW:`) or a `[SIGNED]`/`[CLOSED]` email.
+3. **Is new offer:** continues only when the email is from a team member, sent to an **outside** address, and its subject **starts with** the standard offer subject (so replies, forwards, auto-replies and `[SIGNED]`/`[CLOSED]` emails are ignored).
 4. Posts **Offer extended** to the team's Teams group chat.
 5. **Do until** loop (max 2 rounds, timeout `P29D`):
    - **Delay** 2 days
@@ -78,7 +78,7 @@ flowchart TD
 2. If the subject contains `[SIGNED]` → posts **forwarded** message.
 3. Otherwise **Get emails (V3)** looks for an offer previously sent **to** this sender. If one exists and the sender is external → posts **received from candidate**.
 
-Full step-by-step instructions: [`docs/build-guide.md`](docs/build-guide.md) · All expressions: [`docs/expressions.md`](docs/expressions.md)
+Full step-by-step instructions: [`docs/build-guide.md`](docs/build-guide.md) · All expressions: [`docs/expressions.md`](docs/expressions.md) · Running and maintaining it: [`docs/maintenance.md`](docs/maintenance.md) · Version history: [`CHANGELOG.md`](CHANGELOG.md)
 
 ## Key design decisions
 
@@ -87,7 +87,7 @@ Full step-by-step instructions: [`docs/build-guide.md`](docs/build-guide.md) · 
 - **Capped reminders, inside platform limits.** The team wanted at most two nudges per candidate, so the loop runs 2 rounds × 2 days, then hands over to a person with a "follow up manually" message. A single cloud flow run can't exceed 30 days, so the design keeps Count × Delay well under that (the first version allowed 13 reminders over 26 days).
 - **Human override built in.** Candidates sometimes reply only to the sender, which the flow can't see. A simple team convention covers this: forward to the distro with `[SIGNED]`, or send `[CLOSED]` when an offer is declined.
 - **Two flows, two speeds.** Flow A checks every 2 days; Flow B reacts within minutes, so the team hears about returned documents straight away.
-- **Noise filtering.** Domain checks and subject rules keep internal chatter, replies and forwards from triggering false alerts.
+- **Noise filtering.** Domain checks and a "subject must start with the standard offer subject" rule keep internal chatter, replies, forwards and out-of-office auto-replies from triggering false alerts. The candidate must also be an outside address.
 
 ## Challenges and fixes
 
@@ -98,6 +98,7 @@ Full step-by-step instructions: [`docs/build-guide.md`](docs/build-guide.md) · 
 | Power Automate silently added a **For each** loop | A dynamic-content chip came from *Get emails* (an array) instead of the trigger | Replaced the chips with explicit `triggerOutputs()?['body/…']` expressions |
 | Reminders didn't stop even though the candidate had replied | *Get emails* had **Fetch Only Unread = Yes**, so the reply was skipped once someone opened it | Set it to **No**, raised **Top** to 50, and matched the sender with `contains` |
 | A save failed with "This expression has a problem" | The `@` prefix was pasted into the **fx** editor, which doesn't accept it | Use `@` only when typing straight into an advanced-mode box; leave it out in the fx editor |
+| A colleague's out-of-office auto-reply started a reminder run for a "candidate" who was a colleague | The new-offer check only excluded `RE:`/`FW:`; "Automatic reply: …" passed | Required the subject to **start with** the standard offer subject and the recipient to be **external**; cancelled the false run |
 | Delay ended up after the loop instead of inside it | The new designer shows a Do until's condition bar at the bottom of the box | Moved the Delay between the **Do** label and the loop's condition bar |
 | Do until would have stopped after 1 hour | Default timeout is `PT1H` | Set Timeout to `P29D` and Count to `2` |
 
@@ -122,7 +123,7 @@ Process analysis and requirements gathering · Workflow automation design · Pri
 ## Limitations and future ideas
 
 - Reminders post on weekends too. A weekday check could skip Saturday and Sunday.
-- Matching relies on a consistent subject line (`… Offer of Employment for [Candidate Name]`).
+- Matching relies on a consistent subject line that **starts with** the company name (`[Company name] - Offer of Employment for [Candidate Name]`). A shortened subject won't be picked up.
 - A brand-new email re-sending an offer with the same subject starts a second reminder run; re-sends should be replies.
 - Possible next steps: an adaptive card with a **Mark as signed** button, a weekly summary of open offers, or Oracle Recruiting Cloud status integration.
 
@@ -141,9 +142,11 @@ I configured every flow myself, ran the end-to-end tests, and reviewed and edite
 
 ```
 README.md               Project overview (this file)
+CHANGELOG.md            Version history and maintenance log
 assets/                 Project icon (PNG + SVG)
 docs/build-guide.md     Step-by-step build instructions for both flows
 docs/expressions.md     Every expression used, with explanations
+docs/maintenance.md     How to run, change and troubleshoot the flows in production
 screenshots/            (add your own redacted screenshots here)
 ```
 
