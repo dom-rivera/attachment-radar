@@ -5,7 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Level-Intermediate-F2A900?style=for-the-badge" alt="Level: Intermediate">
   <img src="https://img.shields.io/badge/Power%20Automate-Cloud%20flows-0066FF?style=for-the-badge&logo=powerautomate&logoColor=white" alt="Power Automate cloud flows">
-  <img src="https://img.shields.io/badge/Status-In%20production-2EA44F?style=for-the-badge" alt="Status: In production">
+  <img src="https://img.shields.io/badge/Status-Live-2EA44F?style=for-the-badge" alt="Status: Live">
 </p>
 
 **Automated Teams alerts and follow-up reminders for signed offer documents, built with Power Automate.**
