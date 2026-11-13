@@ -2,6 +2,12 @@
 
 <h1 align="center">Attachment Radar</h1>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Level-Intermediate-F2A900?style=for-the-badge" alt="Level: Intermediate">
+  <img src="https://img.shields.io/badge/Power%20Automate-Cloud%20flows-0066FF?style=for-the-badge&logo=powerautomate&logoColor=white" alt="Power Automate cloud flows">
+  <img src="https://img.shields.io/badge/Status-In%20production-2EA44F?style=for-the-badge" alt="Status: In production">
+</p>
+
 **Automated Teams alerts and follow-up reminders for signed offer documents, built with Power Automate.**
 
 Attachment Radar watches the team's offer emails in Outlook, announces each new offer in a Microsoft Teams group chat, sends up to two follow-up reminders, 2 days apart, if the candidate's signed documents haven't come back, and posts the moment they arrive.
@@ -115,6 +121,16 @@ Tested end to end with a personal address standing in for the candidate and the 
 ## Tech stack
 
 Power Automate (cloud flows, new designer) · Office 365 Outlook connector · Microsoft Teams connector · Workflow Definition Language expressions
+
+## Skills by level
+
+Levels follow Microsoft Learn's Beginner / Intermediate / Advanced scale. **Overall: Intermediate.**
+
+| Level | Skills used in this project |
+|---|---|
+| **Beginner** | Automated cloud flows · Outlook *When a new email arrives (V3)* trigger and settings · Teams *Post message in a chat or channel* · Dynamic content · Simple conditions |
+| **Intermediate** | Workflow Definition Language expressions (`ticks`, `addHours`, `iterationIndexes`, `split`/`first`/`trim`, nested `and`/`or`/`not`) · Filter array in advanced mode with `item()` · Do until loops with Count, Timeout (ISO 8601) and Delay · Variables holding state across multi-day runs · Two coordinated flows with no extra data store · Debugging with run history and raw outputs · Production maintenance (cancelling stale runs, replaying triggers, versioned fixes) |
+| **Advanced** *(next steps, not yet used)* | Solutions with environment variables and connection references (ALM) · Error handling with Scopes and *Configure run after* · Child flows · Microsoft Graph / HTTP actions · Adaptive cards with actions · Governance: DLP policies and service-account connections |
 
 ## Skills demonstrated
 
