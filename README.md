@@ -37,7 +37,7 @@ Two Power Automate cloud flows that use the **mailbox itself as the source of tr
 | A team member emails an offer to a candidate (distro in CC) | Flow A | **Offer extended**: candidate, offer, sender, time |
 | 2 days pass with no signed documents | Flow A | **Follow-up needed (reminder 1 of 2)** |
 | 4 days pass with no signed documents | Flow A | **Follow-up needed (reminder 2 of 2)** |
-| Candidate replies with attachments | Flow B | **Signed documents received from candidate** (within minutes) |
+| Candidate replies with attachments **or file-sharing links** (Google Drive/Docs, OneDrive or Dropbox) | Flow B | **Signed documents received from candidate** (within minutes), noting whether files were attached or shared as links |
 | Teammate forwards signed docs with `[SIGNED]` in the subject | Flow B | **Signed documents received (forwarded)** |
 | Signed docs, `[SIGNED]` or `[CLOSED]` found at a check | Flow A | **Reminders stopped** |
 | Still nothing after reminder 2 | Flow A | **No more automatic reminders**: follow up manually |
@@ -45,13 +45,13 @@ Two Power Automate cloud flows that use the **mailbox itself as the source of tr
 ```mermaid
 flowchart TD
     E[Email arrives in<br/>'Offer of Employment' folder] --> A{Flow A:<br/>new offer from team?}
-    E --> B{Flow B:<br/>has attachments?}
+    E --> B{Flow B:<br/>offer subject?}
 
     A -- No --> X1[Ignore]
     A -- Yes --> A1[Post: Offer extended]
     A1 --> L[Loop: wait 2 days]
     L --> C[Get emails in offer thread]
-    C --> D{Candidate reply with attachment,<br/>SIGNED or CLOSED found?}
+    C --> D{Candidate reply with attachment or file link,<br/>SIGNED or CLOSED found?}
     D -- No --> R[Post: Follow-up needed] --> M{2 reminders sent?}
     M -- No --> L
     M -- Yes --> END1[Post: Reminders ended]
@@ -80,9 +80,9 @@ flowchart TD
 6. After the loop, posts **Reminders stopped** (with what was found) or **No more automatic reminders**.
 
 ### Flow B – Signed documents received
-1. **Trigger:** same folder, subject contains "Offer of Employment", **only with attachments**.
+1. **Trigger:** same folder, subject contains "Offer of Employment" (any email, with or without attachments).
 2. If the subject contains `[SIGNED]` → posts **forwarded** message.
-3. Otherwise **Get emails (V3)** looks for an offer previously sent **to** this sender. If one exists and the sender is external → posts **received from candidate**.
+3. Otherwise **Get emails (V3)** looks for an offer previously sent **to** this sender. If one exists, the sender is external, **and** the email has attachments or contains a Google Drive/Docs, OneDrive or Dropbox link → posts **received from candidate**, with a *Files: Attached / Shared as links* line.
 
 Full step-by-step instructions: [`docs/build-guide.md`](docs/build-guide.md) · All expressions: [`docs/expressions.md`](docs/expressions.md) · Running and maintaining it: [`docs/maintenance.md`](docs/maintenance.md) · Version history: [`CHANGELOG.md`](CHANGELOG.md)
 
@@ -104,6 +104,7 @@ Full step-by-step instructions: [`docs/build-guide.md`](docs/build-guide.md) · 
 | Power Automate silently added a **For each** loop | A dynamic-content chip came from *Get emails* (an array) instead of the trigger | Replaced the chips with explicit `triggerOutputs()?['body/…']` expressions |
 | Reminders didn't stop even though the candidate had replied | *Get emails* had **Fetch Only Unread = Yes**, so the reply was skipped once someone opened it | Set it to **No**, raised **Top** to 50, and matched the sender with `contains` |
 | A save failed with "This expression has a problem" | The `@` prefix was pasted into the **fx** editor, which doesn't accept it | Use `@` only when typing straight into an advanced-mode box; leave it out in the fx editor |
+| A live candidate returned signed documents but no alert posted and reminders continued | The candidate sent the files from Gmail as **Google Drive links**, which Outlook doesn't count as attachments | Flow B trigger no longer requires attachments; both flows now accept attachments **or** Google Drive/Docs, OneDrive or Dropbox links in the candidate's email. SharePoint links are excluded because company signatures quoted in replies contain them |
 | A colleague's out-of-office auto-reply started a reminder run for a "candidate" who was a colleague | The new-offer check only excluded `RE:`/`FW:`; "Automatic reply: …" passed | Required the subject to **start with** the standard offer subject and the recipient to be **external**; cancelled the false run |
 | Delay ended up after the loop instead of inside it | The new designer shows a Do until's condition bar at the bottom of the box | Moved the Delay between the **Do** label and the loop's condition bar |
 | Do until would have stopped after 1 hour | Default timeout is `PT1H` | Set Timeout to `P29D` and Count to `2` |

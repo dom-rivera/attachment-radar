@@ -65,9 +65,9 @@ body('Get_offer_thread')?['value']
 ```
 Filter. If typed straight into the advanced-mode box, start with `@` and no leading spaces. If pasted into the **fx** editor, leave the `@` out:
 ```
-@and(greater(ticks(item()?['receivedDateTime']), ticks(variables('varSentTime'))), or(contains(toUpper(item()?['subject']), '[SIGNED]'), contains(toUpper(item()?['subject']), '[CLOSED]'), and(contains(toLower(item()?['from']), variables('varCandidateEmail')), equals(item()?['hasAttachments'], true))))
+@and(greater(ticks(item()?['receivedDateTime']), ticks(variables('varSentTime'))), or(contains(toUpper(item()?['subject']), '[SIGNED]'), contains(toUpper(item()?['subject']), '[CLOSED]'), and(contains(toLower(item()?['from']), variables('varCandidateEmail')), or(equals(item()?['hasAttachments'], true), contains(toLower(coalesce(item()?['body'], '')), 'drive.google.com'), contains(toLower(coalesce(item()?['body'], '')), 'docs.google.com'), contains(toLower(coalesce(item()?['body'], '')), '1drv.ms'), contains(toLower(coalesce(item()?['body'], '')), 'onedrive.live.com'), contains(toLower(coalesce(item()?['body'], '')), 'dropbox.com')))))
 ```
-Keeps emails received **after** the offer that are `[SIGNED]`, `[CLOSED]`, or from the candidate with an attachment. `ticks()` turns timestamps into numbers so they can be compared.
+Keeps emails received **after** the offer that are `[SIGNED]`, `[CLOSED]`, or from the candidate **with an attachment or a file-sharing link** (Google Drive/Docs, OneDrive or Dropbox). `coalesce(…, '')` avoids an error if an email has no body. SharePoint links are deliberately not matched: company email signatures (quoted in replies) can contain them. `ticks()` turns timestamps into numbers so they can be compared.
 
 ### Documents back (Condition)
 
@@ -114,8 +114,9 @@ triggerOutputs()?['body/from']
 ### Sender is a candidate (Condition: expression *is equal to* `true`)
 
 ```
-and(greater(length(body('Find_offer_to_sender')?['value']), 0), not(contains(toLower(triggerOutputs()?['body/from']), '@yourcompany.com')), not(contains(toLower(triggerOutputs()?['body/from']), '@yourcompany-alt.com')))
+and(greater(length(body('Find_offer_to_sender')?['value']), 0), not(contains(toLower(triggerOutputs()?['body/from']), '@yourcompany.com')), not(contains(toLower(triggerOutputs()?['body/from']), '@yourcompany-alt.com')), or(equals(triggerOutputs()?['body/hasAttachments'], true), contains(toLower(triggerOutputs()?['body/body']), 'drive.google.com'), contains(toLower(triggerOutputs()?['body/body']), 'docs.google.com'), contains(toLower(triggerOutputs()?['body/body']), '1drv.ms'), contains(toLower(triggerOutputs()?['body/body']), 'onedrive.live.com'), contains(toLower(triggerOutputs()?['body/body']), 'dropbox.com')))
 ```
+True when an offer was sent to this sender, the sender is external, **and** the email has attachments or a file-sharing link. Because the trigger no longer requires attachments (v1.3), this last rule is what stops ordinary candidate questions from being announced as "documents received".
 
 ### Message fields
 
@@ -125,5 +126,6 @@ and(greater(length(body('Find_offer_to_sender')?['value']), 0), not(contains(toL
 | Offer | `triggerOutputs()?['body/subject']` |
 | Received | `addHours(triggerOutputs()?['body/receivedDateTime'], 8, 'ddd d MMM yyyy, h:mm tt')` |
 | Preview | `triggerOutputs()?['body/bodyPreview']` |
+| Files | `if(equals(triggerOutputs()?['body/hasAttachments'], true), 'Attached', 'Shared as links - open the email to check')` |
 
 Using trigger expressions instead of dynamic-content chips from *Get emails* prevents Power Automate from wrapping the post in an unwanted **For each** loop.

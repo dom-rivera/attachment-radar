@@ -94,7 +94,7 @@ Placed under the loop's grey bar, still inside *Is new offer → True*. `varDone
 **Create:** Automated cloud flow → **When a new email arrives (V3)**.
 
 ### 1. Trigger
-Same as Flow A, except **Only with Attachments: Yes**.
+Same as Flow A (**Only with Attachments: No**). Candidates sometimes share files as cloud links, which Outlook doesn't count as attachments, so the check for files happens in *Sender is a candidate* instead.
 
 ### 2. Condition `Is SIGNED forward`
 `contains(toUpper(triggerOutputs()?['body/subject']), '[SIGNED]')` **is equal to** fx `true`
@@ -109,7 +109,7 @@ Received: [fx addHours(... receivedDateTime ...)]
 
 ### 3. False branch
 1. **Get emails (V3)** → `Find offer to sender`: Folder Offer of Employment · **To:** fx `triggerOutputs()?['body/from']` · Subject Filter `Offer of Employment` · Fetch Only Unread **No** · Top `1`
-2. **Condition** `Sender is a candidate`: *Sender is a candidate* expression **is equal to** fx `true`
+2. **Condition** `Sender is a candidate`: *Sender is a candidate* expression (offer sent to this sender + external + attachments or file link) **is equal to** fx `true`
 3. **True:** `Post received from candidate` (use fx trigger expressions, not chips from *Get emails*):
 ```
 Signed documents received from candidate
@@ -117,6 +117,7 @@ From: [fx from]
 Offer: [fx subject]
 Received: [fx addHours(...)]
 Preview: [fx bodyPreview]
+Files: [fx if(...) → Attached / Shared as links]
 ```
 
 ---

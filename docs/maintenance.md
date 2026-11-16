@@ -50,7 +50,9 @@ Add it to *Is new offer* (sender and candidate checks) in Flow A and to *Sender 
 |---|---|---|
 | "Offer extended" for something that isn't an offer | Subject or recipient passed *Is new offer* | Open the run and check the subject and `varCandidateEmail`; cancel the run; tighten *Is new offer* if needed |
 | Reminders continue after the candidate replied | Reply not found by *Get offer thread* | Reply is in the offers folder? Fetch Only Unread = **No**? Subject still contains the offer subject? Check *Get offer thread* raw outputs in the run |
-| No "Signed documents received" | Candidate replied only to the sender, sent a link instead of an attachment, changed the subject, or used another address | Teammate forwards to the distro with `[SIGNED]` in the subject |
+| No "Signed documents received" | Candidate replied only to the sender, changed the subject, used another address, or shared files through a service not on the link list (e.g. WeTransfer) | Check Flow B's run history: no run = email not in the folder; run went to False = check sender/offer/files. Teammate forwards to the distro with `[SIGNED]` in the subject |
+| Alert says **Files: Shared as links** | Candidate sent cloud links instead of attachments | Open the email, check the links really are the signed documents, and save copies if your process requires it |
+| Need to recognise another file-sharing service | Its domain isn't in the link list | Add another `contains(…, 'domain')` to *Sender is a candidate* (Flow B) and *Find signed or closed* (Flow A). Avoid domains that appear in company signatures, such as sharepoint.com |
 | "Reminders stopped" hasn't appeared | Not due yet: it posts at the next 2-day check | Check the run is still **Running** |
 | Messages show your name instead of the bot | *Post as* set to **User** | Set *Post as* to **Flow bot** |
 | A **For each** appeared around a step | A dynamic-content chip came from *Get emails* (a list) | Undo, and use the trigger's value or a `triggerOutputs()` expression |

@@ -2,6 +2,27 @@
 
 All notable changes to Attachment Radar. Dates are when the change went live.
 
+## v1.3 – 16 Nov 2026 · Recognise documents shared as cloud links
+
+**Issue found in production:** a candidate returned their signed documents, but no "Signed documents received" alert posted and Flow A still sent reminder 2.
+
+**Root cause:** the candidate sent the files from Gmail as **Google Drive links** rather than attachments. Outlook treats these as links, so the email had `hasAttachments = false`:
+- Flow B's trigger required attachments, so it never ran (confirmed: no run in run history at the time of the email).
+- Flow A's filter required the candidate's email to have attachments.
+
+**Immediate action:** a teammate forwarded the email to the distro with `[SIGNED]`, which posted the forwarded alert.
+
+**Changes:**
+- **Flow B → trigger:** *Only with Attachments* `Yes` → `No`.
+- **Flow B → *Sender is a candidate*:** now also requires the email to have attachments **or** contain a Google Drive/Docs, OneDrive (`1drv.ms`, `onedrive.live.com`) or Dropbox link, so ordinary candidate questions still aren't announced.
+- **Flow B → *Post received from candidate*:** new line *Files: Attached* / *Shared as links - open the email to check*.
+- **Flow A → *Find signed or closed*:** candidate emails with attachments **or** the same file links now stop the reminders.
+- SharePoint links are deliberately excluded, since company signatures quoted in replies can contain them.
+
+**Rollout note:** Flow A runs already waiting keep the previous filter; new offers use the new one.
+
+**Test:** reply from an external test mailbox with a file inserted as a Google Drive link → expect *Signed documents received from candidate* with *Files: Shared as links*.
+
 ## v1.2 – 11 Nov 2026 · Ignore auto-replies and internal recipients
 
 **Issue found in production:** a colleague's out-of-office auto-reply ("Automatic reply: [offer subject]") landed in the offers folder. Flow A treated it as a new offer and started a reminder run for a "candidate" who was actually a team member.
